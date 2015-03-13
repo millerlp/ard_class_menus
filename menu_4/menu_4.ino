@@ -1,4 +1,6 @@
 /*
+	menu_4.ino implements a hardware interrupt on pin D2
+	
 	Use an Uno and Sparkfun Serial-enabled 4x20 character LCD display LCD-09568
 	
 	Connect D4 from Uno to RX pin of LCD display
