@@ -74,7 +74,7 @@ void loop(){
 
 int buttonCheck() {
 	buttonState1 = digitalRead(Button1);
-	delay(10);
+	delay(10); // crude debounce
 	buttonState2 = digitalRead(Button1);
 	if (buttonState1 == buttonState2){ // both reads were LOW
 		if (flashrate < 64) 

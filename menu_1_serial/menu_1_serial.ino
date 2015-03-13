@@ -1,68 +1,33 @@
 /*
-	Use an Uno and Sparkfun Serial-enabled 4x20 character LCD display LCD-09568
+	Use an Uno, communicating with the computer serial monitor
 	
-	Connect D4 from Uno to RX pin of LCD display
-	
-	Connect pushbutton between D2 and ground
-	
-	
-	Serial LCD positioning codes (send mySerial.write(254) first to initiate cursor move)
-position 	1 		2 		3 		4 		5 		6 		7 		8 		9 		10 	11 	12 	13 	14 	15 	16
-line 1 		128 	129 	130 	131 	132 	133 	134 	135 	136 	137 	138 	139 	140 	141 	142 	143
-line 2 		192 	193 	194 	195 	196 	197 	198 	199 	200 	201 	202 	203 	204 	205 	206 	207
-
+	Connect a button between D2 and ground
 
 */
-
-#include <SoftwareSerial.h>
 
 #define Button1 2 // Uno pin D2
 #define LED 13 // use built-in LED on pin 13
 
-SoftwareSerial mySerial(3,4); // pin 4 = TX, pin 3 = RX (unused)
-
 int flashrate = 1; // initial flash rate, 1 Hz
 int flashdelay = 0; // convert flash rate into a ms delay value
-char buf[4]; // for ASCII conversion of flashrate
 
 void setup(){
+	Serial.begin(9600);
 	pinMode(LED, OUTPUT); // turn LED pin to output
 	pinMode(Button1, INPUT_PULLUP); // make button input, use internal pullup resistor
-
-	mySerial.begin(9600);
-	delay(600); // needed to let Serial LCD boot up
-	mySerial.write(254); mySerial.write(0x01); // clear screen command
 	
-	delay(1000);
-	mySerial.write(254);mySerial.write(128); // position cursor on 1st line
-	mySerial.write("Choose a flash rate");
-	mySerial.write(254);mySerial.write(192); // position cursor on 2nd line
+	delay(2000);
 	
-	// The SerialLCD can only print ASCII representations of characters, rather than
-	// numeric variables, so all numeric variables must first be converted to ASCII
-	// equivalents. 
-	// Use the Integer TO Ascii function itoa() to convert flashrate into ASCII
-	// The value gets stored in the buffer 'buf', and the 3rd argument says to do a 
-	// base10 conversion
-	itoa(flashrate, buf, 10);
-	mySerial.write(buf); // display ASCII flash rate stored in buf
-	mySerial.write(254);mySerial.write(195); // position cursor
-	mySerial.write("Hz");
+	Serial.println("Choose a flash rate");
+	Serial.print(flashrate);
+	Serial.println("Hz");
 	
 	flashdelay = flashRateFunc(); // call the flashRateFunc to choose a flash rate
-	
-	// clear screen after returning with new flashrate
-	mySerial.write(254); mySerial.write(0x01); // clear screen command
-	mySerial.write(254);mySerial.write(128); // position cursor on 1st line
-	// Use the itoa function once again to write out the flashrate value
-	mySerial.write(itoa(flashrate,buf,10));
-	mySerial.write("Hz");
 }
 
-void loop() {
+void loop(){
 	delay(flashdelay);
 	digitalWrite(LED, !( digitalRead(LED) ) ); // toggle LED
-
 }
 
 //************************************************************
@@ -102,11 +67,10 @@ int flashRateFunc(void) {
 						// Flash rates above 64 become hard to see, so there's 
 						// no point in flashing faster 
 					}
-					// Now update the displayed flashrate
-					mySerial.write(254);mySerial.write(192);
-					mySerial.write("   "); // write 3 blank spaces to clear number
-					mySerial.write(254);mySerial.write(192);
-					mySerial.write(itoa(flashrate,buf,10)); // display flash rate
+					
+					Serial.print(flashrate);
+					Serial.println("Hz");
+
 					// Now update startTime to give user time to press button again
 					startTime = millis();
 				}
@@ -117,14 +81,15 @@ int flashRateFunc(void) {
 		}
 
 	} // end of while loop
-		// At this point the while loop has timed out
-		mySerial.write(254); mySerial.write(148); // position at start of 3rd line
-		mySerial.write("Storing");
-		delay(400);
-		for (int i = 0; i <= 2; i++) {
-			mySerial.write(".");
-			delay(350);
-		}
+	
+	Serial.print("Storing");
+	delay(400);
+	for (int i = 0; i <= 2; i++) {
+		Serial.print(".");
+		delay(350);
+	}
+	Serial.println();
+
 	// Calculate the necessary delay for the user's flash rate
 	// flashrate = 1 = 1000ms delay
 	// flashrate = 100 = 10 ms delay
@@ -132,5 +97,3 @@ int flashRateFunc(void) {
 	return flashdelay;
 	
 } // end of flashRateFunc
-
-
